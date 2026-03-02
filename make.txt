@@ -1,0 +1,290 @@
++, Cookie là gì ?
+    -, Nơi lưu dữ liệu ở trình duyệt
+    -, Tự động gửi kèm theo request
+    -, Có httpOnly, secure.
+    -, 👉 Cookie luôn được lưu trong trình duyệt (client).
+    -, Lưu trong bộ nhớ / storage của browser
+    -, Mỗi domain có cookie riêng
+    -, Bạn có thể xem ở:
+    -, DevTools → Application → Cookies
++, Session là gì ?
+    -, Nơi lưu dữ liệu ở server
+    -, Client chỉ dữ session_id
+    -, Server map session_id -> server
++, JWT là gì ?
+    -, Token stateless (Không có quốc tịch)
+    -, Chứa thông tin user + chữ ký
+    -, Server không cần lưu
++, flow (JWT + Cookie) : 
+    Login
+    → Server tạo JWT
+    → Set Cookie HttpOnly
+    → Request tự gửi token
+    → Server verify JWT
+
++, 🧠 Hydration là gì?
+    Trong NextJS:
+    Server render HTML trước (SSR)
+    Browser nhận HTML đó
+    React "gắn" lại JS vào HTML → quá trình này gọi là Hydration
++, Flow client Render ? 
+    User mở /dashboard
+    ↓
+    Server gửi JS
+    ↓
+    Browser tải JS
+    ↓
+    React chạy trong browser
+    ↓
+    Tạo HTML bằng JS
+    ↓
+    Hiển thị lên màn hình
++, Flow Server Render
+    User mở /dashboard
+    ↓
+    Request gửi lên server
+    ↓
+    Server chạy React component
+    ↓
+    Server tạo HTML hoàn chỉnh
+    ↓
+    Gửi HTML về browser
+    ↓
+    Browser hiển thị ngay lập tức
++, NextJS đặc biệt vì:
+=> Nó kết hợp cả Server Render + Client Render.
+2️⃣ NextJS khác ở chỗ nào?
+    NextJS có thể:
+    Render trên Server
+    Render trên Client
+    Hoặc kết hợp cả hai
+    Vì vậy nó gọi là Hybrid Rendering
+
+3️⃣ Server Rendering (SSR / RSC) là gì?
+ => Server tạo HTML trước rồi mới gửi về browser.
+Server tạo HTML trước
+↓
+Browser hiển thị ngay
+↓
+JS load
+↓
+React gắn sự kiện (hydration)
+↓
+Client xử lý tương tác
+
+3️⃣ Server Rendering (SSR / RSC) là gì?
+
+Server tạo HTML trước rồi mới gửi về browser.
+
+Ví dụ:
+
+export default function Page() {
+  return <h1>Hello Sơn</h1>
+}
+
+Luồng:
+
+User request
+
+Server chạy React
+
+Server tạo HTML
+
+Gửi HTML về
+
+Browser nhận:
+
+<h1>Hello Sơn</h1>
+
+👉 Trang hiển thị ngay
+👉 Không cần chờ JS
+👉 SEO tốt
+
+4️⃣ Client Rendering là gì?
+
+Nếu bạn có:
+
+'use client'
+
+import { useState } from 'react'
+
+Component này:
+
+Không chạy trên server
+
+Chỉ chạy trong browser
+
+Có thể dùng useState, useEffect
+
+5️⃣ Vậy “kết hợp” nghĩa là gì?
+
+Ví dụ:
+
+// Server Component
+export default function Page() {
+  return (
+    <>
+      <ServerData />
+      <ClientButton />
+    </>
+  )
+}
+
+Trong đó:
+
+'use client'
+function ClientButton() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+
+Luồng xảy ra:
+
+Bước 1: Server render trước
+
+Server render:
+
+ServerData → HTML thật
+
+ClientButton → chỉ render HTML ban đầu
+
+Server gửi HTML về.
+
+Bước 2: Browser nhận HTML
+
+UI hiển thị ngay.
+
+Bước 3: JS load xong → Hydration
+
+React gắn logic vào HTML đã có.
+
+👉 Từ lúc này button mới click được.
+
+6️⃣ Hydration là gì?
+
+Hydration = React “gắn não” vào HTML đã render sẵn.
+
+Nếu:
+
+HTML server ≠ HTML client render lần đầu
+
+→ Hydration mismatch
+
+7️⃣ Tại sao NextJS phải kết hợp cả 2?
+
+Vì mỗi cái mạnh ở một điểm:
+
+Server Render	Client Render
+SEO tốt	Interactive
+Nhanh	Có state
+Bảo mật	useEffect
+8️⃣ Ví dụ thực tế dễ hiểu
+
+Trang của bạn có:
+
+Navbar
+
+Danh sách sản phẩm
+
+Nút thêm vào giỏ hàng
+
+👉 NextJS sẽ làm:
+
+Server:
+
+Render danh sách sản phẩm
+
+Render navbar
+
+Client:
+
+Xử lý click add to cart
+
+useState
+
+useEffect
+
+9️⃣ Tại sao auth hay bị chớp?
+
+Vì bạn để phần quyết định auth ở client:
+
+useEffect(() => {
+  const token = localStorage.getItem('token')
+  setAuth(true)
+}, [])
+
+Trong khi:
+
+Server render trước → chưa biết auth
+
+Client mount → mới biết
+
+→ UI thay đổi → flicker
+
+🔟 Tư duy đúng về NextJS
+
+Think like this:
+
+Server render cấu trúc và dữ liệu
+Client xử lý tương tác
+
+11️⃣ Tóm tắt cực ngắn
+
+NextJS =
+
+Server tạo HTML trước
+↓
+Browser hiển thị ngay
+↓
+JS load
+↓
+React gắn sự kiện (hydration)
+↓
+Client xử lý tương tác
+12️⃣ Vì sao bạn thấy “nó rối”?
+
+Vì bạn đang học trong giai đoạn:
+
+Vừa học React thuần
+
+Vừa học SSR
+
+Vừa học auth
+
+Vừa học cookie
+
+Nó chồng nhau nên cảm giác rối.
+
+Nhưng thực ra chỉ có 1 nguyên tắc:
+
+Server render cái có thể quyết định ngay
+Client chỉ xử lý tương tác
+
+/////////////////////
+
+Luồng thực tế:
+    +, Server render trước → chưa biết user login
+    +, HTML gửi về → hiển thị "Login"
+    +, Browser load JS
+    +, useEffect chạy
+    +, setState
+    +, UI đổi sang "Profile"
+
+HTTP : 
+  HTTP có 2 phần chính:
+  🔹 Request (Yêu cầu)
+  Gồm:
+  Method (GET, POST, PUT, DELETE…)
+  URL
+  Headers
+  Body (nếu có)
+  🔹 Response (Phản hồi)
+  Gồm:
+  Status code (200, 404, 500…)
+  Headers
+  Body (HTML, JSON…)
+API : 
+Một đường dẫn server cung cấp để trả dữ liệu JSON.
+API REST là gì?
+REST là từ viết tắt của Chuyển trạng thái đại diện. 
+REST xác định một tập hợp các hàm như GET, PUT, DELETE, v.v. mà máy khách có thể dùng để truy cập vào dữ liệu của máy chủ. Máy khách và máy chủ trao đổi dữ liệu qua giao thức HTTP.
