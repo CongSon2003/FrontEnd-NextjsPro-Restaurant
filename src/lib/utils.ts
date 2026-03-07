@@ -46,7 +46,7 @@ const isBrowser = typeof window !== 'undefined'
 export const getAccessTokenFromLocalStorage = () => (isBrowser ? localStorage.getItem('accessToken') : null)
 
 // Lấy refreshToken từ localStorage (chỉ thực hiện trên client)
-export const getAccessRefreshTokenFromLocalStorage = () => (isBrowser ? localStorage.getItem('refreshToken') : null)
+export const getRefreshTokenFromLocalStorage = () => (isBrowser ? localStorage.getItem('refreshToken') : null)
 
 // Lưu accessToken vào localStorage (chỉ thực hiện trên client)
 export const setAccessTokenToLocalStorage = (value: string) => isBrowser && localStorage.setItem('accessToken', value)

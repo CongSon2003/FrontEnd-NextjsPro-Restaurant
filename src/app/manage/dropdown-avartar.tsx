@@ -24,21 +24,19 @@ export default function DropdownAvatar() {
   const router = useRouter()
   const logoutMutation = useLogoutMutation()
   const { data } = useAccountMeQuery()
-  const profile = data?.payload
-  console.log('🚀 ~ DropdownAvatar ~ profile:', profile)
-  console.log('🚀 ~ DropdownAvatar ~ data:', data)
   const handleLogout = async () => {
     // Xử lý logic đăng xuất ở đây, ví dụ: gọi API để đăng xuất, xóa token, chuyển hướng đến trang đăng nhập, v.v.
     await logoutMutation.mutateAsync()
     router.push('/')
     toast.success('Đăng xuất thành công')
   }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className='w-8 h-8 cursor-pointer'>
           <AvatarImage
-            src={`${data?.payload.data.avatar || 'https://github.com/shadcn.png'}`}
+            src={`${data?.payload?.data?.avatar || account.avatar}`}
             alt='@shadcn'
             // className="grayscale"
           />

@@ -3,10 +3,16 @@ import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import { useChangePasswordMutation } from '@/queries/useAccount'
 import { UpdatePasswordBody, UpdatePasswordBodyType } from '@/validationsSchema/account.shema'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'react-toastify'
 export default function ChangePasswordForm() {
+  const { mutateAsync } = useChangePasswordMutation()
+  const [isLoadingChangePassword, setIsLoadingChangePassword] = useState(false)
   const form = useForm<UpdatePasswordBodyType>({
     resolver: zodResolver(UpdatePasswordBody),
     defaultValues: {
@@ -16,7 +22,21 @@ export default function ChangePasswordForm() {
     }
   })
   const onSubmit = (data: UpdatePasswordBodyType) => {
-    console.log(data)
+    setIsLoadingChangePassword(true)
+    setTimeout(async () => {
+      try {
+        // mutation
+        const resultChangePassword = await mutateAsync(data)
+
+        form.reset()
+        setIsLoadingChangePassword(false)
+        toast.success(`${resultChangePassword.payload.message || 'Đổi mật khẩu thành công'}`)
+      } catch (error) {
+        setIsLoadingChangePassword(false)
+        console.error(error)
+        toast.error('Đổi mật khẩu thất bạn!')
+      }
+    }, 500)
   }
   return (
     <div>
@@ -33,7 +53,7 @@ export default function ChangePasswordForm() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>Mật khẩu cũ</FieldLabel>
-                    <Input type='password' {...field} placeholder='Nhập mật khẩu...' />
+                    <Input type='password' {...field} autoComplete='current-password' placeholder='Nhập mật khẩu...' />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -44,7 +64,7 @@ export default function ChangePasswordForm() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>Mật khẩu mới</FieldLabel>
-                    <Input type='password' {...field} placeholder='Nhập Mật khẩu mới...' />
+                    <Input type='password' autoComplete='new-password' {...field} placeholder='Nhập Mật khẩu mới...' />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -55,7 +75,12 @@ export default function ChangePasswordForm() {
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>Nhập lại mật khẩu mới</FieldLabel>
-                    <Input type='password' {...field} placeholder='Nhập Lại Mật khẩu mới ...' />
+                    <Input
+                      type='password'
+                      {...field}
+                      autoComplete='new-password'
+                      placeholder='Nhập Lại Mật khẩu mới ...'
+                    />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -65,9 +90,16 @@ export default function ChangePasswordForm() {
               <Button type='button' variant='outline' onClick={() => form.reset()}>
                 Reset
               </Button>
-              <Button type='submit' form='form-change-password'>
-                Lưu thay đổi
-              </Button>
+              {isLoadingChangePassword ? (
+                <Button type='button' form='form-change-password'>
+                  <Spinner data-icon='inline-start' />
+                  Đang thay đổi...
+                </Button>
+              ) : (
+                <Button type='submit' form='form-change-password'>
+                  Lưu thay đổi
+                </Button>
+              )}
             </div>
           </form>
         </CardContent>

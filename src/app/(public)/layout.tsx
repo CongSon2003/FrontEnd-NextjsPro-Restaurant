@@ -38,7 +38,6 @@ export default async function LayoutPublic({
                 <Package2 className='h-6 w-6' />
                 <span className='sr-only'>Nhà Hàng Phố</span>
               </Link>
-
               <NavItem className='transition-colors hover:text-foreground shrink-0' />
             </nav>
           </SheetContent>

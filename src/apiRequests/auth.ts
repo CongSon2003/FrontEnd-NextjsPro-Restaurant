@@ -1,5 +1,5 @@
 import http from '@/lib/http'
-import { LogoutBodyType } from '@/validationsSchema/auth.schema'
+import { LogoutBodyType, RefreshTokenBodyType, RefreshTokenResType } from '@/validationsSchema/auth.schema'
 
 export const authApiRequest = {
   // Khi gọi hàm login, chúng ta sẽ gọi API đến Next.js Server (baseUrl = '') và Next.js Server sẽ tiếp tục gọi API đến backend server
@@ -34,5 +34,17 @@ export const authApiRequest = {
     return http.post('api/auth/logout', null, {
       baseUrl: ''
     })
-  } // client Gọi route handler của nextjs, không cần chuyển tiếp access token vì route handler của nextjs sẽ lấy access token từ cookie (cookie đã được set httpOnly flag nên không thể truy cập từ phía client)
+  }, // client Gọi route handler của nextjs, không cần chuyển tiếp access token vì route handler của nextjs sẽ lấy access token từ cookie (cookie đã được set httpOnly flag nên không thể truy cập từ phía client)
+
+  // Từ route handle gọi đến backend
+  sRefreshToken: (body: RefreshTokenBodyType) => {
+    return http.post<RefreshTokenResType>('auth/refresh-token', body)
+  },
+
+  // Từ client gọi đến route handler
+  RefreshToken: () => {
+    return http.post<RefreshTokenResType>('api/auth/refresh-token', null, {
+      baseUrl: ''
+    })
+  }
 }

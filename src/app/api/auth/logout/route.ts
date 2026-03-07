@@ -6,11 +6,9 @@ export async function POST() {
   try {
     const cookieStore = cookies()
     const accessToken = (await cookieStore).get('accessToken')?.value || ''
-    console.log('🚀 ~ POST ~ accessToken:', accessToken)
     const refreshToken = (await cookieStore).get('refreshToken')?.value || ''
-    console.log('🚀 ~ POST ~ refreshToken:', refreshToken)
 
-    if (!accessToken || !refreshToken) {
+    if (!refreshToken) {
       return NextResponse.json({ message: 'Token không tồn tại' }, { status: 200 })
     }
 
@@ -36,7 +34,6 @@ export async function POST() {
     })
 
     const result = await response.json()
-    console.log('🚀 ~ POST ~ response:', response)
 
     return NextResponse.json(result)
   } catch (error) {
