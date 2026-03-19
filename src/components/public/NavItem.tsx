@@ -1,57 +1,34 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 'use client'
-import { getAccessTokenFromLocalStorage } from '@/lib/utils'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
-const menuNavItems = [
-  {
-    name: 'Home',
-    href: '/'
-  },
-  {
-    name: 'Menu',
-    href: '/menu'
-  },
-  {
-    name: 'Đơn hàng',
-    href: '/orders',
-    authRequired: true // False :  Chỉ hiển thị khi chưa có access token
-  },
-  {
-    name: 'Đăng nhập',
-    href: '/login',
-    authRequired: false // False :  Chỉ hiển thị khi chưa có access token
-  },
-  {
-    name: 'Quản lý',
-    href: '/manage/dashboard',
-    authRequired: true // true: Chỉ hiển thị khi đã có access token
-  }
-]
-
-const active = 'text-foreground'
-const inactive = 'text-muted-foreground'
+import { useAppContext } from '../app-provider'
 
 export default function NavItem({ className }: { className?: string }) {
-  const [isAuth, setIsAuth] = useState(false)
-  // Remove isAuth state, derive directly from getAccessTokenFromLocalStorage
   const pathname = usePathname()
-  console.log('pathname', pathname)
+  const { isAuth } = useAppContext()
 
-  useEffect(() => {
-    const isAccessToken = Boolean(getAccessTokenFromLocalStorage())
-    setIsAuth(isAccessToken)
-  }, [])
+  const menuNavItems = [
+    { name: 'Home', href: '/' },
+    { name: 'Menu', href: '/menu' },
+    { name: 'Đơn hàng', href: '/orders', authRequired: true },
+    { name: 'Đăng nhập', href: '/login', authRequired: false },
+    { name: 'Quản lý', href: '/manage/dashboard', authRequired: true }
+  ]
 
-  return menuNavItems.map((item, index) => {
-    if ((item.authRequired === false && isAuth) || (item.authRequired === true && !isAuth)) {
-      return null
-    }
-    return (
-      <Link href={item.href} key={index} className={`${className} ${pathname === item.href ? active : inactive}`}>
-        {item.name}
-      </Link>
-    )
+  const filteredItems = menuNavItems.filter((item) => {
+    if (item.authRequired === undefined) return true
+    if (item.authRequired === true) return isAuth
+    if (item.authRequired === false) return !isAuth
   })
+
+  return filteredItems.map((item) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      className={`${className} ${pathname === item.href ? 'text-foreground' : 'text-muted-foreground'}`}
+    >
+      {item.name}
+    </Link>
+  ))
 }

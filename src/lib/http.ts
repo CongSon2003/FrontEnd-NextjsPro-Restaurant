@@ -135,50 +135,56 @@ const request = async <Response>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url:
     ↓
     Redirect login
   */
-  // if (!res.ok) {
-  //   if (res.status === ENTITY_ERROR_STATUS) {
-  //     throw new EntityError(
-  //       data as {
-  //         status: 422
-  //         payload: EntityErrorPayload
-  //       }
-  //     )
-  //   } else if (res.status === AUTHENTICATION_ERROR_STATUS) {
-  //     if (isClient) {
-  //       if (!clientLogoutRequest) {
-  //         clientLogoutRequest = fetch('/api/auth/logout', {
-  //           method: 'POST',
-  //           body: null, // Logout mình sẽ cho phép luôn luôn thành công
-  //           headers: {
-  //             ...baseHeaders
-  //           }
-  //         })
-  //         try {
-  //           await clientLogoutRequest
-  //         } catch (error) {
-  //           console.error(error)
-  //         } finally {
-  //           localStorage.removeItem('accessToken')
-  //           localStorage.removeItem('refreshToken')
-  //           clientLogoutRequest = null
-  //           // Redirect về trang login có thể dẫn đến loop vô hạn
-  //           // Nếu không không được xử lý đúng cách
-  //           // Vì nếu rơi vào trường hợp tại trang Login, chúng ta có gọi các API cần access token
-  //           // Mà access token đã bị xóa thì nó lại nhảy vào đây, và cứ thế nó sẽ bị lặp
-  //           location.href = '/login'
-  //         }
-  //       }
-  //     } else {
-  //       // Đây là trường hợp khi mà chúng ta vẫn còn access Token còn hạn
-  //       // Và chúng ta gọi API ở Nextjs server (Route Handler, server component) đến server backend
-  //       // redirect(`/logout?accessToken=${accessToken}`)
-  //       redirect(`/logout`)
-  //     }
-  //   } else {
-  //     // Lỗi HTTP thông thường, chúng ta sẽ ném lỗi và hiển thị thông báo chung chung, không hiển thị chi tiết lỗi từ backend server trả về cho người dùng cuối để tránh rò rỉ thông tin nhạy cảm có thể được sử dụng để tấn công hệ thống
-  //     throw new HttpError(data)
-  //   }
-  // }
+  if (!res.ok) {
+    if (res.status === ENTITY_ERROR_STATUS) {
+      throw new EntityError(
+        data as {
+          status: 422
+          payload: EntityErrorPayload
+        }
+      )
+    } else if (res.status === AUTHENTICATION_ERROR_STATUS) {
+      if (isClient) {
+        if (!clientLogoutRequest) {
+          clientLogoutRequest = fetch('/api/auth/logout', {
+            method: 'POST',
+            body: null, // Logout mình sẽ cho phép luôn luôn thành công
+            headers: {
+              ...baseHeaders
+            }
+          })
+          try {
+            await clientLogoutRequest
+          } catch (error) {
+            console.error(error)
+          } finally {
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+            clientLogoutRequest = null
+            // Redirect về trang login có thể dẫn đến loop vô hạn
+            // Nếu không không được xử lý đúng cách
+            // Vì nếu rơi vào trường hợp tại trang Login, chúng ta có gọi các API cần access token
+            // Mà access token đã bị xóa thì nó lại nhảy vào đây, và cứ thế nó sẽ bị lặp
+            /*
+              nhưng trang /login vẫn gọi API cần access token, và khi API đó fail (401), interceptor hoặc logic auth của bạn lại chạy logout lần nữa → redirect /login → gọi API → 401 → logout → redirect… 🔁
+            */
+            if (window.location.pathname !== '/login') {
+              location.href = '/login'
+            }
+          }
+        }
+      } else {
+        // Đây là trường hợp khi mà chúng ta vẫn còn access Token còn hạn
+        // Và chúng ta gọi API ở Nextjs server (Route Handler, server component) đến server backend
+        const accessToken = getAccessTokenFromLocalStorage()
+        redirect(`/logout?acToken=${accessToken}`)
+        // redirect(`/logout`)
+      }
+    } else {
+      // Lỗi HTTP thông thường, chúng ta sẽ ném lỗi và hiển thị thông báo chung chung, không hiển thị chi tiết lỗi từ backend server trả về cho người dùng cuối để tránh rò rỉ thông tin nhạy cảm có thể được sử dụng để tấn công hệ thống
+      throw new HttpError(data)
+    }
+  }
 
   // Đảm bảo logic dưới đây chỉ chạy ở phía client (browser)
   if (isClient) {

@@ -6,16 +6,11 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { Menu, Package2, Search } from 'lucide-react'
 import { DarkModeToggle } from '@/components/DarkModeToggle'
 
-import AvatarMenu from './avatar-menu'
-import { cookies } from 'next/headers'
-
 export default async function LayoutPublic({
   children
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const accessToken = (await cookies()).get('accessToken')
-  console.log('🚀 ~ LayoutPublic ~ accessToken:', accessToken)
   return (
     <div className='flex min-h-screen w-full flex-col relative'>
       <header className='sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6'>
@@ -51,7 +46,7 @@ export default async function LayoutPublic({
               </InputGroupAddon>
             </InputGroup>
           </div>
-          {/* <AvatarMenu accessToken={accessToken?.value} /> */}
+          {/* <DropdownAvatar /> */}
           <DarkModeToggle />
         </div>
       </header>

@@ -3,8 +3,7 @@ import './globals.css'
 import { Inter as FontSans } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ToastContainer } from 'react-toastify'
-import TanstackProvider from '@/components/Tanstack-provider'
-import RefreshToken from '@/components/refresh-token'
+import AppProvider from '@/components/app-provider'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -26,13 +25,12 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <body suppressHydrationWarning className={`${fontSans.variable} antialiased`}>
-        <TanstackProvider>
+        <AppProvider>
           <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
             <ToastContainer />
-            <RefreshToken />
             {children}
           </ThemeProvider>
-        </TanstackProvider>
+        </AppProvider>
       </body>
     </html>
   )

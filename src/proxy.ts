@@ -19,7 +19,9 @@ export function proxy(request: NextRequest) {
 
   // Nếu người dùng chưa đăng nhập thì điều hướng sang route : /login
   if (privatePaths.some((path) => pathname.startsWith(path)) && !refreshToken) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const url = new URL('/login', request.url)
+    url.searchParams.set('clearTokens', 'true')
+    return NextResponse.redirect(url)
   }
 
   // Nếu người dùng đã đăng nhập không cho vào login nữa
@@ -27,14 +29,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Trường hợp đăng nhập rồi, nhưng muốn vào route và accessToken lại hết hạn hoặc bị xóa thì logout
-  // Tự động logout khi accessToken hết hạn
-  // if (privatePaths.some((path) => pathname.startsWith(path)) && !accessToken) {
-  //   const url = new URL('/logout', request.url)
-  //   const refreshTokenEncode = encodeURIComponent(request.cookies.get('refreshToken')?.value)
-  //   url.searchParams.set('refreshToken', refreshTokenEncode)
-  //   return NextResponse.redirect(url)
-  // }
+  if (privatePaths.some((path) => pathname.startsWith(path)) && !accessToken && refreshToken) {
+    // const url = new URL('/logout', request.url)
+    const url = new URL('/refresh-token', request.url)
+    url.searchParams.set('token', request.cookies.get('refreshToken')?.value)
+    url.searchParams.set('redirect', pathname)
+    return NextResponse.redirect(url)
+  }
 }
 
 export const config = {

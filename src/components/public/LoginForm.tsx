@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Eye, EyeOff } from 'lucide-react'
@@ -9,7 +9,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Input } from '../ui/input'
 import { toast } from 'react-toastify'
 import { useLoginMutation } from '@/queries/useAuth'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Spinner } from '../ui/spinner'
+import { removeTokensFromLocalStorage } from '@/lib/utils'
+import { useAppContext } from '../app-provider'
 
 const loginFormSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
@@ -19,7 +22,10 @@ const loginFormSchema = z.object({
 export default function LoginForm() {
   // state eye open close password
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
-  const loginMutation = useLoginMutation()
+  const { mutateAsync, isPending } = useLoginMutation()
+  const searchParams = useSearchParams()
+  const clearTokens = searchParams.get('clearTokens')
+  const { setIsAuth } = useAppContext()
   const router = useRouter()
   // TypeScript + Zod + React Hook Form để form có type an toàn tuyệt đối
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -31,8 +37,9 @@ export default function LoginForm() {
   })
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
     try {
-      const result = await loginMutation.mutateAsync(values)
+      const result = await mutateAsync(values)
       if (result.status === 200) {
+        setIsAuth(true)
         toast.success('Đăng nhập thành công!')
         router.push('/manage/dashboard')
       }
@@ -42,6 +49,12 @@ export default function LoginForm() {
     }
   }
 
+  useEffect(() => {
+    if (clearTokens) {
+      setIsAuth(false)
+      removeTokensFromLocalStorage()
+    }
+  }, [clearTokens, setIsAuth])
   return (
     <Form {...form}>
       <form method='POST' className='flex flex-col gap-4' onSubmit={form.handleSubmit(onSubmit)} noValidate>
@@ -94,7 +107,16 @@ export default function LoginForm() {
         />
 
         <div className='flex flex-col gap-4'>
-          <Button className='w-full'>Đăng nhập</Button>
+          {isPending === false ? (
+            <Button className='w-full ' type='submit'>
+              Đăng nhập
+            </Button>
+          ) : (
+            <Button type='button' className='cursor-not-allowed w-full' form='form-change-password'>
+              <Spinner data-icon='inline-start' />
+              Đang đăng nhập...
+            </Button>
+          )}
           <div className='w-full border-t relative flex justify-center my-2'>
             <span className='absolute flex bg-white top-[-14px] px-3 font-semibold'>Hoặc</span>
           </div>

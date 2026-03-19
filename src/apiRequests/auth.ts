@@ -2,6 +2,8 @@ import http from '@/lib/http'
 import { LogoutBodyType, RefreshTokenBodyType, RefreshTokenResType } from '@/validationsSchema/auth.schema'
 
 export const authApiRequest = {
+  refreshTokenRequest: null as Promise<{ status: number; payload: RefreshTokenResType }> | null,
+
   // Khi gọi hàm login, chúng ta sẽ gọi API đến Next.js Server (baseUrl = '') và Next.js Server sẽ tiếp tục gọi API đến backend server
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   login: (body: any) => {
@@ -42,9 +44,25 @@ export const authApiRequest = {
   },
 
   // Từ client gọi đến route handler
-  RefreshToken: () => {
-    return http.post<RefreshTokenResType>('api/auth/refresh-token', null, {
+  /* request
+   ↓
+  token expired
+   ↓
+  refreshTokenRequest có chưa?
+  ↓
+   chưa → gọi refresh API
+   có rồi → await promise đó*/
+  // => Khi refreshToken dang chay, khong cho chay them 1 lan nao nua
+  async RefreshToken() {
+    if (this.refreshTokenRequest) return this.refreshTokenRequest
+
+    this.refreshTokenRequest = http.post<RefreshTokenResType>('api/auth/refresh-token', null, {
       baseUrl: ''
     })
+
+    const result = await this.refreshTokenRequest
+    this.refreshTokenRequest = null
+
+    return result
   }
 }

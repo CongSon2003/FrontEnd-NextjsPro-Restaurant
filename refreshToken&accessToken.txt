@@ -1,2 +1,35 @@
+# Refresh token trong Next.js
 
+Các API yêu cầu Authentication có thể được gọi ở 2 nơi
+
+1. Server Component: Ví dụ page `/account/me` cần gọi API `/me` ở server component để lấy thông tin profile của user
+2. Client Component: Ví dụ page `/account/me` cần gọi API `/me` ở client component để lấy thông tin profile của user
+
+=> Hết hạn token có thể xảy ra ở Server Component và Client Component
+
+Các trường hợp hết hạn access token
+
+- Đang dùng thì hết hạn: Chúng ta sẽ không để trường hợp này xảy ra, bằng cách có 1 setinterval check token liên tục để refresh token trước khi nó hết hạn
+
+- Lâu ngày không vào web, vào lại thì hết hạn:
+
+Khi vào lại website thì middleware.ts sẽ được gọi đầu tiên. Chúng ta sẽ kiểm tra xem access token còn không (vì access token sẽ bị xóa khi hết hạn), nếu không còn thì chúng ta sẽ gọi cho redirect về page client component có nhiệm vụ gọi API refresh token và redirect ngược về trang cũ
+
+Lưu ý để tránh bị bug khi thực hiện Đang dùng thì hết hạn
+
+- Không để refresh token bị gọi duplicate
+- Khi refresh token bị lỗi ở route handler => trả về 401 bất kể lỗi gì
+- Khi refrest token bị lỗi ở useEffect client => ngừng interval ngay
+- Đưa logic check vào layout ở trang authenticated: Không cho chạy refresh token ở những trang mà unauthenticated như: login, logout
+- Kiểm tra logic flow trong middleware
+
+/*
+    1, Note: Lâu ngày không vào web thì không thể tạo accessToken mới vì không gọi refreshToken được lên.
+    +, Lên accessToken hết hạn sẽ xóa khỏi cookie()
+    +, refreshToken chỉ hoạt động khi online trong web còn khi offline không gọi được lên accessToken hết hạn và bị xóa khỏi cookies
+    2, Note: 
+    +, Khi vào một route cần auth thì accessToken hết hạn (xóa khỏi cookie) thì cần gọi đến route refreshToken để tạo accessToken mới và điều hướng về route cũ
+    +, Ngược lại vào route mà không cần auth thì combonet refreshToken sẽ tự accessToken mới và gán nó vào cookie và localstorage
+*/
+    
 1. accessToken(15s) và refreshToken(1d) trong cookies() khi hết exp tự xóa còn local phải xóa bằng code client component

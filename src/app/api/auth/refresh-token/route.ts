@@ -19,22 +19,23 @@ export async function POST(req: Request) {
   try {
     const { payload } = await authApiRequest.sRefreshToken({ refreshToken })
 
+    console.log(payload)
     // Lưu accessToken và refreshToken
     const decodedAccessToken = jwt.decode(payload.data.accessToken) as { exp: number }
-    const decodedRefreshToken = jwt.decode(payload.data.accessToken) as { exp: number }
+    const decodedRefreshToken = jwt.decode(payload.data.refreshToken) as { exp: number }
 
     ;(await cookieStore).set('accessToken', payload.data.accessToken, {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       expires: decodedAccessToken.exp * 1000
     })
     ;(await cookieStore).set('refreshToken', payload.data.refreshToken, {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       expires: decodedRefreshToken.exp * 1000
     })
 

@@ -1,4 +1,5 @@
 import { authApiRequest } from '@/apiRequests/auth'
+import { error } from 'console'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -8,13 +9,9 @@ export async function POST() {
     const accessToken = (await cookieStore).get('accessToken')?.value || ''
     const refreshToken = (await cookieStore).get('refreshToken')?.value || ''
 
-    if (!refreshToken) {
-      return NextResponse.json({ message: 'Token không tồn tại' }, { status: 200 })
+    if (!refreshToken || !accessToken) {
+      return NextResponse.json({ message: 'accessToken or refreshToken không tồn tại' }, { status: 200 })
     }
-
-    // Xoa token trong cookie
-    ;(await cookieStore).delete('accessToken')
-    ;(await cookieStore).delete('refreshToken')
 
     // Gọi API đến backend server để thực hiện đăng xuất
     // const apiRes = await authApiRequest.sLogout({
@@ -33,11 +30,19 @@ export async function POST() {
       })
     })
 
+    if (!response.ok) {
+      throw new Error('Lỗi khi đăng xuất')
+    }
+
     const result = await response.json()
+
+    // delete cookie sau khi logout thành công
+    ;(await cookieStore).delete('accessToken')
+    ;(await cookieStore).delete('refreshToken')
 
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error in POST /api/auth/logout:', error)
-    return NextResponse.json({ message: 'Lỗi khi đăng xuất' }, { status: 200 })
+    return NextResponse.json({ message: 'Lỗi khi đăng xuất' }, { status: 500 })
   }
 }
