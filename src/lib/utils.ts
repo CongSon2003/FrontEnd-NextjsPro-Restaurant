@@ -48,47 +48,54 @@ export const checkAndRefreshToken = async (params?: { onError: () => void; onSuc
   const accessToken = getAccessTokenFromLocalStorage()
   const refreshToken = getRefreshTokenFromLocalStorage()
 
-  if (!accessToken || !refreshToken) return
+  // 1. Nếu không có token -> Báo lỗi để redirect về Login
+  if (!accessToken || !refreshToken) {
+    return params?.onError?.()
+  }
 
   const decodedAccessToken = jwt.decode(accessToken) as { exp: number; iat: number } | null
   const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number; iat: number } | null
 
-  if (!decodedAccessToken || !decodedRefreshToken) return
-
-  const now = Date.now() / 1000 // milliseconds → seconds
-
-  /*
-    note: Khi set cookie với expires thì sẽ bị lệch từ 0 - 1000ms
-    Router cache mặc định NextJs là 30s kể từ lần request gần nhất
-  */
-  if (decodedRefreshToken.exp <= now) {
-    // Nếu RefreshToken mà hết hạn thì logout và xóa accessToken và refreshToken trong localstorage
-    console.log('RefreshToken đã hết hạn')
-    removeTokensFromLocalStorage()
-    return params?.onError && params.onError()
+  if (!decodedAccessToken || !decodedRefreshToken) {
+    return params?.onError?.()
   }
 
-  // VD:Kiểm tra khi accessToken còn 1/3 thời gian hết hạn
+  const now = Date.now() / 1000
+
+  // 2. RefreshToken đã hết hạn hẳn
+  if (decodedRefreshToken.exp <= now) {
+    removeTokensFromLocalStorage()
+    return params?.onError?.()
+  }
 
   const tokenLife = decodedAccessToken.exp - decodedAccessToken.iat
   const timeLeft = decodedAccessToken.exp - now
 
-  if (timeLeft < tokenLife / 3) {
-    try {
-      const res = await authApiRequest.RefreshToken()
-      console.log(res)
-      // Trong trường hợp có gửi nhưng refreshToken lại hết hạn mà không check được thì clear localstorage
-      if (res.status === 401 || res.status === 404) {
-        removeTokensFromLocalStorage()
-      }
-      setAccessTokenToLocalStorage(res?.payload?.data.accessToken)
-      setRefreshTokenToLocalStorage(res?.payload?.data.refreshToken)
+  // 3. QUAN TRỌNG: Nếu Token còn hạn (chưa đến mốc 1/3) -> Báo SUCCESS luôn để Page redirect
+  if (timeLeft >= tokenLife / 3) {
+    console.log('access-token còn hạn')
+    return params?.onSuccess?.()
+  }
 
-      params?.onSuccess?.()
-    } catch (error) {
-      console.error(error)
-      params?.onError?.()
+  // 4. Nếu sắp hết hạn (< 1/3) -> Tiến hành gọi API
+  try {
+    const res = await authApiRequest.RefreshToken()
+
+    if (res.status === 401 || res.status === 404) {
+      removeTokensFromLocalStorage()
+      return params?.onError?.()
     }
+
+    // Lưu token mới
+    setAccessTokenToLocalStorage(res?.payload?.data.accessToken)
+    setRefreshTokenToLocalStorage(res?.payload?.data.refreshToken)
+
+    // BẮT BUỘC: Gọi onSuccess sau khi đã lưu xong
+    console.log('Refresh-token Success!')
+    return params?.onSuccess?.()
+  } catch (error) {
+    console.error('Refresh Token Error:', error)
+    return params?.onError?.()
   }
 }
 

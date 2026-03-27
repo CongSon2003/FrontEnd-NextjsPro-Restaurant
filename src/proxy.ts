@@ -30,7 +30,6 @@ export function proxy(request: NextRequest) {
   }
 
   if (privatePaths.some((path) => pathname.startsWith(path)) && !accessToken && refreshToken) {
-    // const url = new URL('/logout', request.url)
     const url = new URL('/refresh-token', request.url)
     url.searchParams.set('token', request.cookies.get('refreshToken')?.value)
     url.searchParams.set('redirect', pathname)

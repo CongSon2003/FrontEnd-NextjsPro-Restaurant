@@ -21,7 +21,7 @@ export type AccountListResType = z.TypeOf<typeof AccountListRes>
 export const UpdateMeBody = z
   .object({
     name: z.string().trim().min(2, { message: 'Tên phải có ít nhất 2 ký tự' }).max(256),
-    avatar: z.string().url().optional()
+    avatar: z.string().nullable().optional()
   })
   .strict()
 
@@ -60,7 +60,7 @@ export const UpdateEmployeeAccountBody = z
   .object({
     name: z.string().trim().min(2, { message: 'Tên phải có ít nhất 2 ký tự' }).max(256),
     email: z.string().email({ message: 'Email không đúng định dạng' }),
-    avatar: z.string().url().optional(),
+    avatar: z.string().optional(),
     changePassword: z.boolean().optional(),
     password: z.string().optional(),
     confirmPassword: z.string().optional()

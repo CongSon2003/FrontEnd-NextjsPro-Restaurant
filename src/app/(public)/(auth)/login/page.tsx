@@ -1,5 +1,6 @@
 import LoginForm from '@/components/public/LoginForm'
-export default function Login() {
+import { Suspense } from 'react'
+function Login() {
   return (
     <div className='flex-1 flex items-center justify-center'>
       {/* Restaurant icons decoration */}
@@ -29,5 +30,12 @@ export default function Login() {
         </div>
       </div>
     </div>
+  )
+}
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Login...</div>}>
+      <Login />
+    </Suspense>
   )
 }

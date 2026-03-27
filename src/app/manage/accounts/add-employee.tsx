@@ -12,6 +12,8 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { useAddAccountMutation } from '@/queries/useAccount'
+import { useMediaMutation } from '@/queries/useMedia'
 import { AddEmployeeAccountBody, AddEmployeeAccountBodyType } from '@/validationsSchema/account.shema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { PlusCircle, Upload } from 'lucide-react'
@@ -25,6 +27,9 @@ export default function AddEmployee({ onSubmitSuccess }: { onSubmitSuccess?: () 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [fileAvatar, setFileAvatar] = useState<File | null>(null)
   const [previewAvatar, setPreviewAvatar] = useState<string>('')
+
+  const { mutateAsync: uploadMedia } = useMediaMutation()
+  const { mutateAsync: addEmployee } = useAddAccountMutation()
 
   const form = useForm<AddEmployeeAccountBodyType>({
     resolver: zodResolver(AddEmployeeAccountBody),
@@ -62,10 +67,25 @@ export default function AddEmployee({ onSubmitSuccess }: { onSubmitSuccess?: () 
     setIsLoadingSubmit(true)
     try {
       console.log('Dữ liệu tạo mới:', data)
-      // Giả lập gọi API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      toast.success('Thêm nhân viên thành công')
+      const payload = {
+        ...data
+      }
+      // BƯỚC 1: Nếu có file chọn từ máy, phải upload lên server trước
+      if (fileAvatar) {
+        const formData = new FormData()
+        formData.append('file', fileAvatar)
+        const uploadRes = await uploadMedia(formData)
+        payload.avatar = uploadRes.payload.data // Đây là URL thật (vd: http://localhost:4000/static/...)
+      } else {
+        delete payload.avatar
+      }
+      // Giả lập gọi API
+      await addEmployee(payload, {
+        onSuccess: () => {
+          toast.success('Thêm nhân viên thành công')
+        }
+      })
 
       setFileAvatar(null)
       setPreviewAvatar('')

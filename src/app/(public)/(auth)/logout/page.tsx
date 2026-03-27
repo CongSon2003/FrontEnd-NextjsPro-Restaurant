@@ -4,9 +4,9 @@ import { useAppContext } from '@/components/app-provider'
 import { getAccessTokenFromLocalStorage, getRefreshTokenFromLocalStorage } from '@/lib/utils'
 import { useLogoutMutation } from '@/queries/useAuth'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 
-export default function LogoutPage() {
+function Logout() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const rToken = searchParams.get('rToken')
@@ -31,7 +31,14 @@ export default function LogoutPage() {
         return router.push('/login')
       })
     }
-    return router.push('/')
+    // return router.push('/')
   }, [router, mutateAsync, rToken, acToken, setIsAuth])
   return null
+}
+export default function LogoutPage() {
+  return (
+    <Suspense fallback={<div>Loading Logout...</div>}>
+      <Logout />
+    </Suspense>
+  )
 }

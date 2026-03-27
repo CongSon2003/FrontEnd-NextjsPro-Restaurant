@@ -30,21 +30,34 @@ export default function UpdateProfileForm() {
   })
 
   const onSubmit = (data: UpdateMeBodyType) => {
-    console.log(data)
     setIsLoadingSubmit(true)
-    // Upload img avatar
+
+    // Dùng setTimeout như bạn muốn hoặc bỏ đi cũng được
     setTimeout(async () => {
       try {
-        const formData = new FormData()
-        let avatarUrl = undefined
+        // MẶC ĐỊNH: Lấy avatar hiện tại từ form (có thể là URL cũ từ DB)
+        let avatarUrl = data.avatar
 
-        // Nếu file upload có thì lưu vào db
+        // Nếu có file mới được chọn, tiến hành upload để lấy URL mới
         if (fileAvatar) {
+          const formData = new FormData()
           formData.append('file', fileAvatar)
           const res = await mutateAsync(formData)
-          avatarUrl = res.payload.data
+          avatarUrl = res.payload.data // URL trả về từ server upload
         }
-        await updateMeMutation.mutateAsync({ ...data, avatar: avatarUrl })
+        const payload: UpdateMeBodyType = {
+          ...data
+        }
+
+        if (avatarUrl !== null && avatarUrl !== '') {
+          payload.avatar = avatarUrl
+        } else {
+          delete payload.avatar
+        }
+        // Gửi dữ liệu cập nhật
+        // Nếu avatarUrl vẫn là null/undefined từ DB, hãy đảm bảo API chấp nhận nó
+        await updateMeMutation.mutateAsync(payload)
+
         refetch()
         toast.success('Lưu thông tin thành công')
       } catch (error) {
@@ -54,14 +67,6 @@ export default function UpdateProfileForm() {
         setIsLoadingSubmit(false)
       }
     }, 500)
-
-    // const res = await fetch('http://localhost:4000/media/upload', {
-    //   method: 'POST',
-    //   body: formData,
-    //   headers: {
-    //     Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-    //   }
-    // })
   }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,7 +91,7 @@ export default function UpdateProfileForm() {
     if (isSuccess && data) {
       form.reset({
         name: data.payload.data.name,
-        avatar: data.payload.data.avatar
+        avatar: data.payload.data.avatar ?? ''
       })
     }
   }, [data, isSuccess, form])
@@ -98,7 +103,14 @@ export default function UpdateProfileForm() {
           <CardTitle>Thông tin cá nhân</CardTitle>
         </CardHeader>
         <CardContent>
-          <form id='form-profile' className='grid gap-6' onSubmit={form.handleSubmit(onSubmit)} noValidate>
+          <form
+            id='form-profile'
+            className='grid gap-6'
+            onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.log(errors)
+            })}
+            noValidate
+          >
             <FieldGroup className='grid gap-6'>
               <Controller
                 name='avatar'
@@ -110,7 +122,7 @@ export default function UpdateProfileForm() {
                       <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
                         <AvatarImage src={previewAvatar} />
                         <AvatarFallback className='rounded-none'>
-                          {previewAvatar === null ? 'null' : <Spinner className='size-10' />}
+                          {previewAvatar === '' ? 'null' : <Spinner className='size-10' />}
                         </AvatarFallback>
                       </Avatar>
 
