@@ -44,7 +44,9 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useGetAccountListQuery } from '@/queries/useAccount'
+import { useDeleteAccountMutatuion, useGetAccountListQuery } from '@/queries/useAccount'
+import { toast } from 'react-toastify'
+import { handleErrorApi } from '@/lib/utils'
 
 export type AccountItem = AccountListResType['data'][0]
 const columnHelper = createColumnHelper()
@@ -63,16 +65,23 @@ const AccountTableContext = createContext<{
 })
 
 export const columns: ColumnDef<AccountType>[] = [
+  // {
+  //   id: 'id',
+  //   header: '#',
+  //   cell: ({ row }) => {
+  //     return <span>{row.index}</span>
+  //   }
+  // },
   {
     accessorKey: 'id',
-    header: 'ID'
+    header: 'Id'
   },
   {
     accessorKey: 'avatar',
     header: 'Avatar',
     cell: ({ row }) => {
       return (
-        <Avatar className='w-20 h-20 rounded-none'>
+        <Avatar className='w-20 h-20'>
           <AvatarImage src={row.getValue('avatar') || 'https://github.com/shadcn.png'} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
@@ -108,12 +117,10 @@ export const columns: ColumnDef<AccountType>[] = [
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const { setEmployeeIdEdit, setEmployeeDelete } = useContext(AccountTableContext)
       const openEditEdit = () => {
-        console.log('Sửa user:', user.id)
         setEmployeeIdEdit(user.id)
       }
 
       const openDeleteEmployee = () => {
-        console.log('Xóa user:', user.id)
         setEmployeeDelete(user)
       }
 
@@ -149,9 +156,26 @@ const PAGE_SIZE = 10
 // Tanstack table là headless nên nó chỉ xử lý logic, không render UI.
 
 function AlertDialogDeleteAccount({ employeeDelete, setEmployeeDelete }) {
+  const { mutateAsync } = useDeleteAccountMutatuion()
+  const onDeleteAccount = async () => {
+    if (employeeDelete) {
+      try {
+        const result = await mutateAsync(employeeDelete.id, {
+          onSuccess: () => {
+            setEmployeeDelete(null)
+            toast.success('Delete Successfully!')
+          }
+        })
+      } catch (error) {
+        handleErrorApi({
+          error
+        })
+      }
+    }
+  }
   return (
     <AlertDialog
-      open={Boolean(employeeDelete)}
+      open={Boolean(employeeDelete)} // Open
       onOpenChange={(value) => {
         if (!value) {
           setEmployeeDelete(null)
@@ -168,7 +192,7 @@ function AlertDialogDeleteAccount({ employeeDelete, setEmployeeDelete }) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogAction onClick={onDeleteAccount}>Continue</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -199,11 +223,10 @@ export default function AccountTable() {
 
   // call api accounts Query
   const { data: queryData, refetch } = useGetAccountListQuery()
-
+  const { mutateAsync: deleteAccount } = useDeleteAccountMutatuion()
   const finalData = useMemo(() => {
     return queryData ?? []
   }, [queryData])
-  console.log(finalData)
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: finalData,
@@ -228,8 +251,6 @@ export default function AccountTable() {
       rowSelection
     }
   })
-  console.log(columnFilters)
-  console.log(employeeIdEdit, employeeDelete)
   useEffect(() => {
     table.setPagination({
       pageIndex,

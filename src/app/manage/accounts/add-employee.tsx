@@ -66,8 +66,6 @@ export default function AddEmployee({ onSubmitSuccess }: { onSubmitSuccess?: () 
   const onSubmit = async (data: AddEmployeeAccountBodyType) => {
     setIsLoadingSubmit(true)
     try {
-      console.log('Dữ liệu tạo mới:', data)
-
       const payload = {
         ...data
       }
