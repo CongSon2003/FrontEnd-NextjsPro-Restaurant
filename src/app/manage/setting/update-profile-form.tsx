@@ -32,6 +32,7 @@ export default function UpdateProfileForm() {
   const onSubmit = (data: UpdateMeBodyType) => {
     setIsLoadingSubmit(true)
 
+    if (updateMeMutation.isPending) return
     // Dùng setTimeout như bạn muốn hoặc bỏ đi cũng được
     setTimeout(async () => {
       try {

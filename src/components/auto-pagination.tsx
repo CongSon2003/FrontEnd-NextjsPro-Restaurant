@@ -12,7 +12,12 @@ const RANGE = 2
 export default function AutoPagination({ page, pageSize, pathname }) {
   let dotAfter = false
   let dotBefore = false
-
+  console.log(
+    '🚀 ~ file: auto-pagination.tsx:11 ~ AutoPagination ~ page, pageSize, pathname:',
+    page,
+    pageSize,
+    pathname
+  )
   const renderDotBefore = (index: number) => {
     if (!dotBefore) {
       dotBefore = true
@@ -100,10 +105,10 @@ export default function AutoPagination({ page, pageSize, pathname }) {
         <PaginationItem>
           <PaginationNext
             className={cn({
-              'cursor-not-allowed': page === pageSize
+              'cursor-not-allowed': page >= pageSize
             })}
             onClick={(e) => {
-              if (page === pageSize) {
+              if (page >= pageSize) {
                 e.preventDefault()
               }
             }}

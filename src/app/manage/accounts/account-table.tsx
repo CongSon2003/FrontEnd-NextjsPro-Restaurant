@@ -74,7 +74,7 @@ export const columns: ColumnDef<AccountType>[] = [
   // },
   {
     accessorKey: 'id',
-    header: 'Id'
+    header: 'ID'
   },
   {
     accessorKey: 'avatar',
@@ -160,7 +160,7 @@ function AlertDialogDeleteAccount({ employeeDelete, setEmployeeDelete }) {
   const onDeleteAccount = async () => {
     if (employeeDelete) {
       try {
-        const result = await mutateAsync(employeeDelete.id, {
+        await mutateAsync(employeeDelete.id, {
           onSuccess: () => {
             setEmployeeDelete(null)
             toast.success('Delete Successfully!')
@@ -264,7 +264,7 @@ export default function AccountTable() {
       <div className='w-full'>
         <EditEmployee id={employeeIdEdit} setEmployeeIdEdit={setEmployeeIdEdit} onSubmitSuccess={onSubmitSuccess} />
         <AlertDialogDeleteAccount employeeDelete={employeeDelete} setEmployeeDelete={setEmployeeDelete} />
-        <div className='flex items-center justify-center py-4'>
+        <div className='flex items-center gap-2 py-4'>
           <Input
             placeholder='Filter emails...'
             value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
@@ -309,7 +309,7 @@ export default function AccountTable() {
             </TableBody>
           </Table>
         </div>
-        <div className='flex items-center justify-end space-x-2 py-4'>
+        <div className='flex items-center justify-end space-x-2 pt-4'>
           <div className='text-xs text-muted-foreground py-4 flex-1 '>
             Hiển thị <strong>{table.getPaginationRowModel().rows.length}</strong> trong{' '}
             <strong>{finalData.length}</strong> kết quả

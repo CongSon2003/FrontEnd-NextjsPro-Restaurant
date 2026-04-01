@@ -20,8 +20,11 @@ export default function MobileNavLinks() {
         </Button>
       </SheetTrigger>
       <SheetContent side='left' className='w-[320px]'>
-        {/* <SheetTitle>Are you absolutely sure?</SheetTitle> */}
+        {/* Thêm Title và Description với class sr-only để ẩn đi nhưng vẫn thỏa mãn Accessibility */}
         <SheetHeader>
+          <SheetTitle className='sr-only'>Menu điều hướng di động</SheetTitle>
+          <SheetDescription className='sr-only'>Mô tả menu điều hướng cho các thiết bị di động</SheetDescription>
+
           <nav className='grid gap-6 text-lg font-medium'>
             <Link
               href='#'
@@ -30,13 +33,14 @@ export default function MobileNavLinks() {
               <Package2 className='h-4 w-4 transition-all group-hover:scale-110' />
               <span className='sr-only'>Acme Inc</span>
             </Link>
+
             {menuItems.map((item, index) => {
               const isActive = pathname === item.href
               return (
                 <Link
                   key={index}
                   href={item.href}
-                  className={cn('flex items-center gap-4 px-2.5  hover:text-foreground', {
+                  className={cn('flex items-center gap-4 px-2.5 hover:text-foreground', {
                     'text-foreground': isActive,
                     'text-muted-foreground': !isActive
                   })}
@@ -47,22 +51,7 @@ export default function MobileNavLinks() {
               )
             })}
           </nav>
-          {/* <nav className='flex flex-col items-center py-4'>
-            <Link
-              href={`/setting`}
-              className={cn(
-                `flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:text-foreground md:h-8 md:w-8`,
-                {
-                  'bg-accent text-accent-foreground': pathname === '/manage/setting',
-                  'text-muted-foreground': pathname !== '/manage/setting'
-                }
-              )}
-            >
-              <Settings className='h-5 w-5' />
-            </Link>
-          </nav> */}
         </SheetHeader>
-        {/* <SheetDescription>This action cannot be undone.</SheetDescription> */}
       </SheetContent>
     </Sheet>
   )

@@ -6,6 +6,9 @@ import { toast } from 'react-toastify'
 import { twMerge } from 'tailwind-merge'
 import { EntityError } from './http'
 import { authApiRequest } from '@/apiRequests/auth'
+import { DishStatus } from '@/constants/types'
+import { TableStatus } from '@/validationsSchema/table.shema'
+import { envClientConfig } from '@/config'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -115,4 +118,29 @@ export const setRefreshTokenToLocalStorage = (value: string) => isBrowser && loc
 export const removeTokensFromLocalStorage = () => {
   if (isBrowser) localStorage.removeItem('accessToken')
   if (isBrowser) localStorage.removeItem('refreshToken')
+}
+
+export const getVietnameseDishStatus = (status: (typeof DishStatus)[keyof typeof DishStatus]) => {
+  switch (status) {
+    case DishStatus.Available:
+      return 'Có sẵn'
+    case DishStatus.Unavailable:
+      return 'Không có sẵn'
+    default:
+      return 'Ẩn'
+  }
+}
+export const getVietnameseTableStatus = (status: (typeof TableStatus)[keyof typeof TableStatus]) => {
+  switch (status) {
+    case TableStatus.Available:
+      return 'Có sẵn'
+    case TableStatus.Reserved:
+      return 'Đã đặt'
+    default:
+      return 'Ẩn'
+  }
+}
+
+export const getTableLink = ({ token, tableNumber }: { token: string; tableNumber: number }) => {
+  return (envClientConfig.NEXT_PUBLIC_URL + '/tables/' + tableNumber + '?token=' + token) as string
 }
