@@ -25,7 +25,7 @@ export default function LoginForm() {
   const { mutateAsync, isPending } = useLoginMutation()
   const searchParams = useSearchParams()
   const clearTokens = searchParams.get('clearTokens')
-  const { setIsAuth } = useAppContext()
+  const { setIsAuth, setRole } = useAppContext()
   const router = useRouter()
   // TypeScript + Zod + React Hook Form để form có type an toàn tuyệt đối
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -36,12 +36,17 @@ export default function LoginForm() {
     }
   })
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
+    if (isPending) return
     try {
       const result = await mutateAsync(values)
       if (result.status === 200) {
         setIsAuth(true)
         toast.success('Đăng nhập thành công!')
-        router.push('/manage/dashboard')
+        setRole(result.payload?.data.account.role)
+        setTimeout(() => {
+          router.push('/manage/dashboard')
+          router.refresh() // Ép dọn Router Cache của Next.js để khi push sang trang mới thì dữ liệu sẽ được cập nhật mới nhất, tránh trường hợp dữ liệu cũ vẫn hiển thị do cache chưa được làm mới.
+        }, 100)
       }
     } catch (error) {
       console.error('Login error:', error)

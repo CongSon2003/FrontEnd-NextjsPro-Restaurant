@@ -1,3 +1,4 @@
+import revalidateApiRequest from '@/apiRequests/revalidate'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -66,7 +67,7 @@ export default function AddDish({}) {
     }
 
     const result = await addDishMutation.mutateAsync({ body: payload })
-
+    await revalidateApiRequest('dishes') // Revalidate cache cho danh sách món ăn
     toast.success('Add Successfully')
 
     setOpen(false)

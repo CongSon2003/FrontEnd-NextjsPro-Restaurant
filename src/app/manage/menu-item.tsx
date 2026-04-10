@@ -2,9 +2,9 @@ import { Home, LineChart, ShoppingCart, Users2, Salad, Table, DoorClosed } from 
 
 const menuItems = [
   {
-    title: 'Dashboard',
+    title: 'Home',
     Icon: Home,
-    href: '/manage/dashboard'
+    href: '/'
   },
   {
     title: 'Đơn hàng',
@@ -31,11 +31,6 @@ const menuItems = [
     title: 'Nhân viên',
     Icon: Users2,
     href: '/manage/accounts'
-  },
-  {
-    title: 'Home',
-    Icon: DoorClosed,
-    href: '/'
   }
 ]
 

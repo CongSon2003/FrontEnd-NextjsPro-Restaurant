@@ -8,7 +8,7 @@ import { EntityError } from './http'
 import { authApiRequest } from '@/apiRequests/auth'
 import { DishStatus } from '@/constants/types'
 import { TableStatus } from '@/validationsSchema/table.shema'
-import { envClientConfig } from '@/config'
+import envConfig from '@/config'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -53,15 +53,15 @@ export const checkAndRefreshToken = async (params?: { onError: () => void; onSuc
 
   // 1. Nếu không có token -> Báo lỗi để redirect về Login
   if (!accessToken || !refreshToken) {
-    return params?.onError?.()
+    return
   }
 
   const decodedAccessToken = jwt.decode(accessToken) as { exp: number; iat: number } | null
   const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number; iat: number } | null
 
-  if (!decodedAccessToken || !decodedRefreshToken) {
-    return params?.onError?.()
-  }
+  // if (!decodedAccessToken || !decodedRefreshToken) {
+  //   return params?.onError?.()
+  // }
 
   const now = Date.now() / 1000
 
@@ -142,5 +142,12 @@ export const getVietnameseTableStatus = (status: (typeof TableStatus)[keyof type
 }
 
 export const getTableLink = ({ token, tableNumber }: { token: string; tableNumber: number }) => {
-  return (envClientConfig.NEXT_PUBLIC_URL + '/tables/' + tableNumber + '?token=' + token) as string
+  return (envConfig.NEXT_PUBLIC_URL + '/tables/' + tableNumber + '?token=' + token) as string
+}
+
+export const formatCurrency = (number: number) => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(number)
 }

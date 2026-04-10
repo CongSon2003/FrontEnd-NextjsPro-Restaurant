@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import TableTable from './table-table'
+import { Suspense } from 'react'
 
 export default function TablesPage() {
   // flex-1: chiếm toàn bộ không gian còn lại của phần tử cha
@@ -16,7 +17,9 @@ export default function TablesPage() {
           </CardHeader>
           <CardContent className='px-6'>
             {/* Tùy chỉnh padding cho mobile */}
-            <TableTable />
+            <Suspense fallback={<div>Loading...</div>}>
+              <TableTable />
+            </Suspense>
           </CardContent>
         </Card>
       </div>

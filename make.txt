@@ -288,3 +288,28 @@ Một đường dẫn server cung cấp để trả dữ liệu JSON.
 API REST là gì?
 REST là từ viết tắt của Chuyển trạng thái đại diện. 
 REST xác định một tập hợp các hàm như GET, PUT, DELETE, v.v. mà máy khách có thể dùng để truy cập vào dữ liệu của máy chủ. Máy khách và máy chủ trao đổi dữ liệu qua giao thức HTTP.
+
+
+1. Static Rendering (Mặc định)
+ => Toàn bộ nột dung trang web được tạo ra một lần duy nhất lúc bạn chạy lệnh NPM RUN BUILD
+ 
+ +, Cách hoạt động: Nextjs tạo ra các file HTML tĩnh. Khi người dùng truy cập, server chỉ việc gửi file đó đi.
+ +, Ưu điểm: Cực kỳ nhanh, tốt cho seo, chỉu tải tốt
+ +, Nhược điểm: 
+ +, Dùng khi nào: Trang Blog, Trang giới thiệu, trang tài liệu (Nhưng trang ít thay đổi nội dung)
+
+2. Dynamic Rendering (Render theo yêu cầu)
+=> Đây là kiểu "gọi món mới nấu". Trang web sẽ được tạo ra riêng biệt cho mỗi lần có người dùng truy cập (Request time).
+
+  +, Cách hoạt động: Server sẽ chạy code, lấy dữ liệu mới nhất từ Database, sau đó mới trả về HTML cho trình duyệt. +, 
+  +, Dấu hiệu nhận biết: Khi bạn dùng các hàm như cookies(), headers() hoặc fetch với tùy chọn { cache: 'no-store' }. +, 
+  +, Ưu điểm: Dữ liệu luôn luôn là mới nhất, cá nhân hóa được nội dung (như giỏ hàng, thông tin user).  +, 
+  +, Dùng khi nào: Trang quản trị (Dashboard), trang cá nhân, hoặc dữ liệu thay đổi liên tục theo giây.
+
+3. Incremental Static Regeneration (ISR)
+=> Đây là "phiên bản nâng cấp" của Static Rendering. Nó cho phép bạn cập nhật các trang tĩnh mà không cần build lại toàn bộ website.
+
+  +, Cách hoạt động: Bạn thiết lập một khoảng thời gian (ví dụ 60 giây). Sau 60 giây, nếu có người truy cập, Next.js sẽ âm thầm tạo lại trang đó ở nền dưới với dữ liệu mới.
+  +, Ưu điểm: Vừa nhanh như trang tĩnh, vừa có dữ liệu mới mà không tốn tài nguyên server như Dynamic.
+  +, Dùng khi nào: Trang tin tức, danh sách sản phẩm, giá cả (thay đổi theo phút/giờ).
+  +, Cú pháp: fetch('...', { next: { revalidate: 60 } })

@@ -191,7 +191,7 @@ const request = async <Response>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url:
     const normalizeUrl = normalizePath(url)
     console.log(`normalizeUrl: `, normalizeUrl)
 
-    if (['api/auth/login', 'api/guest/login'].includes(normalizeUrl)) {
+    if (['api/auth/login', 'api/guest/auth/login'].includes(normalizeUrl)) {
       // Khi login thành công, chúng ta sẽ nhận được accessToken và refreshToken từ backend server thông qua Next.js Server, lúc này chúng ta sẽ lưu accessToken vào localStorage để tiện cho việc gửi đi trong các request tiếp theo còn refreshToken thì chúng ta sẽ không lưu vào localStorage mà sẽ lưu vào cookie với HttpOnly flag để tăng cường bảo mật
       const { accessToken, refreshToken } = (payload as LoginResType).data
       setAccessTokenToLocalStorage(accessToken)
@@ -204,7 +204,7 @@ const request = async <Response>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url:
       }
       setAccessTokenToLocalStorage(accessToken)
       setRefreshTokenToLocalStorage(refreshToken)
-    } else if (['api/auth/logout', 'api/guest/logout'].includes(normalizeUrl)) {
+    } else if (['api/auth/logout', 'api/guest/auth/logout'].includes(normalizeUrl)) {
       // Khi logout thành công, chúng ta sẽ xóa accessToken và refreshToken ở phía client
       removeTokensFromLocalStorage()
     }

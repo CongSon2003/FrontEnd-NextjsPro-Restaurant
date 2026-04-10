@@ -42,6 +42,7 @@ import AddDish from './add-dish'
 import { useDeleteDishMutatuion, useGetDishListQuery } from '@/queries/useDish'
 import { getVietnameseDishStatus, handleErrorApi } from '@/lib/utils'
 import { toast } from 'react-toastify'
+import revalidateApiRequest from '@/apiRequests/revalidate'
 
 type DishItem = DishListResType['data'][0]
 
@@ -184,8 +185,9 @@ function AlertDialogDeleteDish({
     if (dishDelete) {
       try {
         await mutateAsync(dishDelete.id, {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast.success('Deleted Successfully')
+            await revalidateApiRequest('dishes') // Revalidate cache cho danh sách món ăn
           }
         })
       } catch (error) {

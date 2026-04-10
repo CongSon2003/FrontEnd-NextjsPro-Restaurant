@@ -1,4 +1,5 @@
 'use client'
+import revalidateApiRequest from '@/apiRequests/revalidate'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -93,6 +94,7 @@ export default function EditDish({
         body.image = imageUrl
       }
       const result = await updateDish.mutateAsync({ id, body })
+      await revalidateApiRequest('dishes') // Revalidate cache cho danh sách món ăn
       toast.success('Update Successfully')
       form.reset()
       setFile(null)

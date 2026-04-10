@@ -29,7 +29,6 @@ export async function POST() {
         refreshToken: refreshToken
       })
     })
-
     if (!response.ok) {
       throw new Error('Lỗi khi đăng xuất')
     }

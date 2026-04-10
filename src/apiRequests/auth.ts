@@ -1,5 +1,10 @@
 import http from '@/lib/http'
-import { LogoutBodyType, RefreshTokenBodyType, RefreshTokenResType } from '@/validationsSchema/auth.schema'
+import {
+  LoginResType,
+  LogoutBodyType,
+  RefreshTokenBodyType,
+  RefreshTokenResType
+} from '@/validationsSchema/auth.schema'
 
 export const authApiRequest = {
   refreshTokenRequest: null as Promise<{ status: number; payload: RefreshTokenResType }> | null,
@@ -7,7 +12,7 @@ export const authApiRequest = {
   // Khi gọi hàm login, chúng ta sẽ gọi API đến Next.js Server (baseUrl = '') và Next.js Server sẽ tiếp tục gọi API đến backend server
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   login: (body: any) => {
-    return http.post('api/auth/login', body, {
+    return http.post<LoginResType>('api/auth/login', body, {
       baseUrl: ''
     })
   },

@@ -1,0 +1,86 @@
+# DATA CACHING - TỔNG HỢP KIẾN THỨC
+
+## 1. ĐỊNH NGHĨA
+- Caching là kỹ thuật lưu trữ dữ liệu tạm thời để tăng tốc độ truy cập
+- Giảm tải cho server, cải thiện hiệu suất ứng dụng
+
+## 2. CÁC LOẠI CACHE
+### Client-side Cache
+- Browser cache (localStorage, sessionStorage)
+- In-memory cache
+- Service Worker cache
+
+### Server-side Cache
+- Redis, Memcached
+- Database query cache
+- HTTP caching headers
+
+### CDN Cache
+- Static assets caching
+- Geographic distribution
+
+## 3. CACHE STRATEGIES
+- Cache-First: Lấy từ cache trước, nếu không có thì fetch
+- Network-First: Fetch từ server trước, fallback cache
+- Stale-While-Revalidate: Dùng cache cũ, update trong background
+- Network-Only: Không dùng cache
+
+## 4. NEXT.JS CACHING
+- Static Generation (SSG): Build time, revalidate
+- Incremental Static Regeneration (ISR)
+- Server-side Rendering (SSR) với cache headers
+- Image Optimization
+
+## 5. HTTP CACHE HEADERS
+- Cache-Control: public/private, max-age, no-cache
+- ETag: Xác định version của resource
+- Last-Modified: Thời gian sửa đổi cuối cùng
+
+## 6. BEST PRACTICES
+- Cache dữ liệu ít thay đổi
+- Set TTL (Time To Live) phù hợp
+- Invalidate cache khi dữ liệu update
+- Monitor cache hit rate
+- Sử dụng versioning cho resources
+
+## 7. TOOLS
+- Redis: In-memory data store
+- Memcached: Distributed memory caching
+- Next.js built-in caching
+- Service Workers
+====================================
+Công cụ "Phá hủy" Cache (Invalidation)
+Khi bạn sửa giá món ăn trong dự án Nhà hàng Big Boy, bạn phải dùng các công cụ này để xóa đồ cũ:
+
+revalidateTag('tag_name'): Xóa theo nhãn (Chính xác nhất).
+
+revalidatePath('/path'): Xóa theo đường dẫn (Mạnh tay nhất).
+
+router.refresh(): Ép trình duyệt xóa cái Router Cache 30s để hiện đồ mới ngay lập tức.
+
+
+1, Nguyên tắc 1: Phân định rõ "Hai Thế Giới"
+    Không có công cụ nào là hoàn hảo, chỉ có công cụ đặt đúng vị trí:
+    Thế giới Server (Trang Chủ, Menu công khai): * Mục tiêu: SEO (Google dễ đọc) và Tốc độ load lần đầu siêu nhanh.
+    Công cụ: Server Component + hàm fetch gốc của Next.js.
+    Đặc điểm: Không có 'use client', không có trạng thái Loading trên màn hình. Mọi thứ đã được máy chủ "nấu" chín thành HTML tĩnh trước khi gửi cho khách.
+    Thế giới Client (Trang Quản trị Admin, Giỏ hàng):
+    Mục tiêu: Tương tác mượt mà, phản hồi tức thì, bảo mật (yêu cầu đăng nhập).
+    Công cụ: Client Component ('use client') + React Query (useQuery, useMutation).
+    Đặc điểm: Giao việc quản lý bộ nhớ đệm (Cache) cho RAM của trình duyệt thông qua React Query.
+
+2, Nguyên tắc 2: Không để "Hai Con Hổ Ngủ Chung Một Rừng"
+Lỗi lớn nhất khiến bạn sửa dữ liệu xong mà web không đổi là do để Cache của Next.js và Cache của React Query đánh nhau.
+
+Khi dùng React Query (Trang Admin): Tuyệt đối tháo bỏ các cấu hình { cache: 'force-cache', next: { tags: [...] } } ra khỏi API fetch gốc. Để cho React Query tự do gọi API lấy dữ liệu mới nhất, và dùng invalidateQueries để làm tươi giao diện.
+
+Khi dùng Server Fetch (Trang Chủ): Bắt buộc phải gắn thẻ { cache: 'force-cache', next: { tags: ['tên_nhãn'] } } ngay tại nơi gọi hàm để Next.js biết đường đóng băng và tối ưu tốc độ.
+
+3, Nguyên tắc 3: Quy trình "Kích Nổ Cache" chuẩn mực (3 Bước)
+Khi bạn thực hiện hành động Thêm/Sửa/Xóa (Ví dụ: Đổi giá món ăn ở trang Admin), bạn phải kích nổ cả 3 tầng Cache để toàn bộ hệ thống đồng bộ:
+Làm mới trang Admin (Client Cache): Trong onSuccess của React Query, gọi queryClient.invalidateQueries({ queryKey: ['dishes'] }).
+Làm mới trang Chủ (Server Data Cache): Gọi API ẩn /api/revalidate?tag=dishes để bắn tín hiệu lên máy chủ, ép nó xóa bản HTML cũ đi và tạo bản HTML chứa giá món ăn mới.
+Xóa bộ nhớ tạm của thẻ Link (Router Cache): Sau khi hoàn tất 2 bước trên, gọi router.refresh() (từ useRouter của next/navigation) để ép trình duyệt tải lại trang tĩnh nếu người dùng chuyển trang bằng thẻ <Link>.
+
+1. cacheTag (Chiếc Nhãn Dán / Điều khiển thủ công)
+2. cacheLife (Hạn Sử Dụng / Tự động làm mới)

@@ -30,6 +30,7 @@ export const useUpdateDishMutation = () => {
       return dishApiRequest.updateDish(id, body)
     },
     onSuccess: () => {
+      // invalidateQueries đóng vai trò y hệt như revalidateTag()
       queryClient.invalidateQueries({
         queryKey: ['dishes']
       })

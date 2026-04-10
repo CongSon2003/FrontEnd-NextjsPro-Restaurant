@@ -11,6 +11,7 @@ import {
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import RefreshToken from './refresh-token'
 import { getAccessTokenFromLocalStorage } from '@/lib/utils'
+import { RoleType, RoleValues } from '@/constants/types'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -25,11 +26,16 @@ const queryClient = new QueryClient({
 type AppContextType = {
   isAuth: boolean
   setIsAuth: (isAuth: boolean) => void
+  role: RoleType | undefined
+  setRole: (role?: RoleType) => void
 }
 
 const AppContext = createContext<AppContextType>({
   isAuth: false,
-  setIsAuth: (isAuth: boolean) => {}
+  setIsAuth: (isAuth: boolean) => {},
+
+  role: undefined as RoleType | undefined,
+  setRole: (role?: RoleType) => {}
 })
 
 export const useAppContext = () => {
@@ -39,9 +45,13 @@ export const useAppContext = () => {
 export default function AppProvider({ children }: { children: React.ReactNode }) {
   // Nếu có accessToken là có đăng nhập thì set ISauthstate = true
   const [isAuthState, setIsAuthState] = useState(false)
-
+  const [role, setRole] = useState<RoleType>(undefined)
   const handleSetIsAuthState = useCallback((isAuth: boolean) => {
     setIsAuthState(isAuth)
+  }, [])
+
+  const handleSetRole = useCallback((role) => {
+    setRole(role)
   }, [])
 
   useEffect(() => {
@@ -49,13 +59,17 @@ export default function AppProvider({ children }: { children: React.ReactNode })
     if (isAccessToken) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAuthState(true)
+      setRole(role)
     }
-  }, [])
+  }, [role])
+  console.log(role)
   console.log(isAuthState)
   return (
     <AppContext.Provider
       value={{
         isAuth: isAuthState,
+        role,
+        setRole: handleSetRole, //Tham chiếu đến hàm handleSetRole
         setIsAuth: handleSetIsAuthState //Tham chiếu đến hàm handleSetIsAuthState
       }}
     >

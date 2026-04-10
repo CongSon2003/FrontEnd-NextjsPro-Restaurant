@@ -1,0 +1,94 @@
+NHÓM 1: TẠO VÀ ĐỊNH NGHĨA CACHE (Lúc nấu ăn)
+Nhóm này dùng chung với file hoặc hàm có khai báo 'use cache' (tính năng mới thay thế cho việc cấu hình cache lằng nhằng trong hàm fetch). Nó cực kỳ hữu ích khi bạn gọi Database trực tiếp (như Prisma/Drizzle) mà không qua API.
+
+### 1. cacheTag(tag: string) - (Dán Nhãn)
+Mục đích: Gắn một hoặc nhiều nhãn (tag) cho dữ liệu được cache lại. Để sau này bạn có thể gọi tên nhãn đó ra mà xóa.
+
+Nơi dùng: Bên trong hàm hoặc component có dòng 'use cache'.
+
+Ví dụ thực tế:
+
+TypeScript
+import { cacheTag } from 'next/cache'
+
+export async function getDishes() {
+  'use cache' // Lệnh này bảo Next.js: "Lưu kết quả hàm này lại nhé"
+  cacheTag('dishes') // Lệnh này bảo: "Dán nhãn hộp này là 'dishes'"
+  
+  // Gọi trực tiếp Database, không cần dùng fetch
+  const dishes = await db.dish.findMany() 
+  return dishes
+}
+### 2. cacheLife(profile: string) - (Hạn Sử Dụng)
+Mục đích: Xác định dữ liệu này sẽ sống trong cache bao lâu trước khi bị coi là "ôi thiu" (stale). Bạn có thể cấu hình profile ('seconds', 'minutes', 'hours', 'days') trong next.config.js.
+
+Nơi dùng: Bên trong hàm có 'use cache'.
+
+Ví dụ thực tế:
+
+TypeScript
+import { cacheLife, cacheTag } from 'next/cache'
+
+export async function getDailySpecials() {
+  'use cache'
+  cacheTag('specials')
+  cacheLife('hours') // Món đặc biệt trong ngày -> Cache sống vài giờ thôi
+  
+  return await db.special.findMany()
+}
+NHÓM 2: XÓA VÀ CẬP NHẬT CACHE (Lúc thay đổi dữ liệu)
+Khi bạn sửa, xóa, hoặc thêm món ăn ở trang /manage, bạn phải dùng các hàm này để phá bỏ cái cache đã tạo ở Nhóm 1.
+
+### 3. revalidatePath(path: string) - (Quét Sạch Một Khu Vực)
+Mục đích: Xóa cache của toàn bộ một đường dẫn URL. Nó giống như việc bạn ra lệnh: "Dọn dẹp lại toàn bộ trang Thực đơn cho tôi".
+
+Nơi dùng: Server Actions, Route Handlers.
+
+Ví dụ thực tế:
+
+TypeScript
+'use server'
+import { revalidatePath } from 'next/cache'
+
+export async function deleteDish(id: string) {
+  await db.dish.delete({ where: { id } })
+  // Xóa toàn bộ cache của trang /manage/dishes
+  revalidatePath('/manage/dishes') 
+}
+### 4. revalidateTag(tag: string) - (Cập Nhật Âm Thầm)
+Mục đích: Xóa cache của tất cả những hàm/fetch nào được dán nhãn tương ứng. Lưu ý: Nó hoạt động theo kiểu "âm thầm" (stale-while-revalidate) - nghĩa là user có thể vẫn thấy dữ liệu cũ trong tích tắc trong khi Server đang lấy dữ liệu mới ở nền.
+
+Nơi dùng: Server Actions, Route Handlers (Thường dùng tốt nhất cho Webhook hoặc cronjob).
+
+Ví dụ thực tế:
+
+TypeScript
+// /api/webhook/update-inventory/route.ts
+import { revalidateTag } from 'next/cache'
+
+export async function POST() {
+  // Kho báo hết nguyên liệu, âm thầm cập nhật lại menu
+  revalidateTag('dishes')
+  return Response.json({ success: true })
+}
+5. updateTag(tag: string) - (Cập Nhật Tức Thì / Ép Đợi)
+Mục đích: Bản nâng cấp "vũ lực" của revalidateTag. Khi gọi hàm này, nó hủy ngay lập tức cái cache cũ. Khách hàng nào truy cập ngay sau đó sẽ bắt buộc phải đợi Server lấy dữ liệu mới xong mới được xem. Giải quyết triệt để lỗi "Vừa lưu xong mà chưa thấy đổi".
+
+Nơi dùng: CHỈ ĐƯỢC DÙNG trong Server Actions.
+
+Ví dụ thực tế:
+
+TypeScript
+'use server'
+import { updateTag } from 'next/cache'
+import { redirect } from 'next/navigation'
+
+export async function addDish(formData: FormData) {
+  await db.dish.create({ /* data */ })
+  
+  // Ép tag 'dishes' chết ngay lập tức.
+  updateTag('dishes') 
+  
+  // Khi redirect về, trang đích sẽ bị bắt đợi data mới nhất.
+  redirect('/manage/dishes')
+}

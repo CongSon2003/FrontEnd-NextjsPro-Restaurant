@@ -1,0 +1,152 @@
+
+1. Static Rendering (Mặc định)
+ => Toàn bộ nột dung trang web được tạo ra một lần duy nhất lúc bạn chạy lệnh NPM RUN BUILD
+ 
+ +, Cách hoạt động: Nextjs tạo ra các file HTML tĩnh. Khi người dùng truy cập, server chỉ việc gửi file đó đi.
+ +, Ưu điểm: Cực kỳ nhanh, tốt cho seo, chỉu tải tốt
+ +, Nhược điểm: 
+ +, Dùng khi nào: Trang Blog, Trang giới thiệu, trang tài liệu (Nhưng trang ít thay đổi nội dung)
+ +, Khi một trang web chứa các hàm fetch có force-cache, Next.js sẽ coi trang đó là trang Tĩnh (Static).
+ +, Nó sẽ được chạy duy nhất một lần lúc bạn npm run build. Kết quả trả về được "đóng băng" vào file HTML.
+ +, Cách dùng: { cache: 'force-cache' }: Lấy từ bộ nhớ đệm vĩnh viễn (đến khi build lại).
+2. Dynamic Rendering (Render theo yêu cầu)
+=> Đây là kiểu "gọi món mới nấu". Trang web sẽ được tạo ra riêng biệt cho mỗi lần có người dùng truy cập (Request time).
+
+  +, Cách hoạt động: Server(nextjs) sẽ chạy code, lấy dữ liệu mới nhất từ Database, sau đó mới trả về HTML cho trình duyệt. +, 
+  +, Dấu hiệu nhận biết: Khi bạn dùng các hàm như cookies(), headers() hoặc fetch với tùy chọn { cache: 'no-store' }. +, 
+  +, Ưu điểm: Dữ liệu luôn luôn là mới nhất, cá nhân hóa được nội dung (như giỏ hàng, thông tin user).  +, 
+  +, Dùng khi nào: Trang quản trị (Dashboard), trang cá nhân, hoặc dữ liệu thay đổi liên tục theo giây.
+  +, Cách dùng: 
+    -, Cách 1: Dùng { cache: 'no-store' } trong fetch.: Không lưu cache, luôn gọi API mới nhất.
+    -, Cách 2: Dùng các hàm động của Next.js như cookies() hoặc headers().
+    -, Cách 3: Ép kiểu cho toàn bộ file (Segment Config).
+3. Incremental Static Regeneration (ISR)
+=> Đây là "phiên bản nâng cấp" của Static Rendering. Nó cho phép bạn cập nhật các trang tĩnh mà không cần build lại toàn bộ website.
+  +, Cách hoạt động: Bạn thiết lập một khoảng thời gian (ví dụ 60 giây). Sau 60 giây, nếu có người truy cập, Next.js sẽ âm thầm tạo lại trang đó ở nền dưới với dữ liệu mới.
+  +, Ưu điểm: Vừa nhanh như trang tĩnh, vừa có dữ liệu mới mà không tốn tài nguyên server như Dynamic.
+  +, Dùng khi nào: Trang tin tức, danh sách sản phẩm, giá cả (thay đổi theo phút/giờ).
+  +, Cú pháp: fetch('...', { next: { revalidate: 60 } }): Dùng cache nhưng sẽ làm mới sau mỗi 60 giây.
+4. Client-side Rendering (CSR)
+=> Đây là kiểu "để trình duyệt tự lo". Server chỉ trả về một khung HTML trống và một đống file JavaScript. Trình duyệt của người dùng sẽ tự chạy JavaScript để vẽ ra giao diện.
+  +, Cách hoạt động: Thường dùng với các thư viện như SWR hoặc React Query bên trong các use client components.
+  +, Ưu điểm: Tương tác cực mượt (như app mobile), không cần tải lại trang khi chuyển tab.
+  +, Nhược điểm: Không tốt cho SEO (vì lúc đầu Google chỉ thấy trang trống), tốn pin/CPU của điện thoại người dùng.
+  +, Dùng khi nào: Các tính năng tương tác sâu như Form, Chat, Search bar, hoặc các phần cần bảo mật không cho Google quét.
+  +, Cách dùng : 'use client'
+5, Cơ chế hoạt động của SSR
+=> Thay vì gửi một file HTML trống rỗng cho trình duyệt (như React thuần), Server của Next.js sẽ làm các bước sau:
+  +, Nhận Request: User truy cập vào đường dẫn.
+  +, Fetch Data: Server tự đi lấy dữ liệu từ Database hoặc API.
+  +, Render HTML: Server lắp dữ liệu vào component để tạo ra một file HTML hoàn chỉnh.
+  +, Gửi về Client: Trình duyệt nhận được file HTML có đầy đủ nội dung để hiển thị ngay lập tức.
+  +, Hydration: Trình duyệt tải thêm một chút JavaScript để các nút bấm, hiệu ứng bắt đầu hoạt động.
+6, Client-side Fetching:
+=> Đây là kỹ thuật mà Server Next.js không tham gia vào việc lấy dữ liệu. Server chỉ gửi cái "Xác" HTML trống (hoặc có loading spinner) xuống trình duyệt. 
+Sau đó, trình duyệt mới tự cầm "giỏ" đi lấy dữ liệu từ API.
+  +, Công cụ: useEffect + fetch, hoặc các thư viện như SWR, TanStack Query (React Query) như bạn đang dùng.
+  +, Trạng thái Build: Next.js thấy trang này không dùng hàm Server động nào, nên nó đánh dấu là ○ (Static). Nhưng cái "Static" này chỉ là cái vỏ thôi.
+=======================
+
+1. Khi bạn gõ npm run build, chuyện gì xảy ra?
+Next.js sẽ quét qua toàn bộ các file trong thư mục app của bạn và phân loại chúng vào 2 cái "rổ":
+
+  🔵 Rổ 1: Static (Tĩnh) - Mặc định
+    +, Nếu trang của bạn không dùng dữ liệu cá nhân (cookies) và không yêu cầu no-store, Next.js sẽ "nấu chín" nó ngay lúc này.
+    +, Nó gọi API, lấy dữ liệu, lắp vào HTML.
+    +, Nó tạo ra các file .html cứng ngắc và cất vào thư mục .next.
+    +, Kết quả: Khi khách truy cập, Server chỉ việc bốc cái file có sẵn đó đưa cho khách. Cực nhanh.
+
+  🔴 Rổ 2: Dynamic (Động)
+    +, Nếu trang của bạn có dùng cookies(), headers() hoặc bạn ghi cache: 'no-store', Next.js sẽ "để đó từ từ".
+    +, Nó không tạo ra file HTML sẵn. Nó chỉ lưu lại cái "công thức" (code JS) để nấu trang đó.
+    +, Kết quả: Khi có khách truy cập, Server mới bắt đầu lôi công thức ra, đi chợ lấy dữ liệu và nấu món ăn ngay lúc đó. Chậm hơn một chút nhưng đồ luôn mới.
+2. So Sánh revalidatePath và revalidateTag: 
+  +, RevalidatePath: Xóa catche của toàn bộ đường dẫn (ví dụ: '/menu')
+    -, Phạm vị: Xóa catche của toàn bộ đường dẫn (ví dụ: '/menu')
+    -, Độ chính xác: Thấp (xóa tất cả fetch trong trang đó).
+    -, Dùng khi nào: Khi nào muốn làm mới cả một trang web
+  +, RevalidateTag: Xóa catche của một tập dữ liệu cụ thể bất kể nó nằm ở đâu.
+    -, Độ chính xác: Cao (Chỉ xóa đúng cái fetch có tag đó)
+    -, Dùng khi nào: Khi dữ liệu đó xuất hiện ở nhiều trang khác nhau (ví dụ: số lượng món ắn hiện ở cả trang chủ và trang menu)
+    -, Chỉ chạy ở Server: revalidateTag chỉ có thể được gọi trong Server Actions hoặc Route Handlers. 
+    -, Bạn không thể gọi nó trực tiếp từ Client Component (nút bấm).
+    -, Không giới hạn số tag: Một lần fetch bạn có thể gắn nhiều tag: tags: ['menu', 'dishes', 'category-1']
+    -, Tự động cập nhật UI: Khi bạn gọi revalidateTag trong một Server Action, Next.js sẽ tự động render lại các component liên quan và gửi dữ liệu mới về cho người dùng mà họ không cần load lại trang.  
+    => revalidateTag giống như việc bạn dán nhãn vào các hộp đồ ăn trong tủ lạnh. Khi bạn nấu món mới, bạn chỉ cần bỏ đúng cái hộp có nhãn đó đi để thay bằng hộp mới, thay vì phải dọn sạch cả cái tủ lạnh!
+2. Tại sao mình phải tách biệt nó với SSG/SSR?
+Đặc điểm       SSG / SSR / ISR      Client-side Fetching (Của bạn)
+Nơi lấy data   Server lấy rồi mới 
+                gửi HTML đi.        Trình duyệt hiện HTML rồi mới lấy data.
+Thời điểm lấy   Trước khi khách
+                 thấy trang.        Sau khi khách đã vào trang.
+SEOCực tốt
+(Data nằm sẵn
+ trong HTML).   Kém (Data được đổ vào
+                 sau bằng JS).      Hiệu năngKhông tốn tài nguyên máy khách.Tốn tài nguyên máy khách để chạy JS/Fetch.
+============================
+
+'use client'
+Hãy render ở Server trước (Pre-render), sau đó gửi xuống trình duyệt để chạy tiếp (Hydration)".
+Hydration:  (Nhập hồn vào xác)
+1. Tóm lại: Hydration giống như việc bạn mua một con robot đồ chơi về. Đầu tiên bạn lấy nó ra khỏi hộp (HTML - thấy hình dáng), sau đó bạn lắp pin vào (JavaScript), và khi bạn bật công tắc lên để nó bắt đầu cử động được, đó chính là Hydration.
+
+SSG là tên gọi của phương pháp (Tạo file lúc build).
+Static Rendering là tên gọi của chế độ hoạt động trong Next.js (Mặc định và ưu tiên tốc độ).
+
+Dữ liệu ít thay đổi (Blog, Menu): Dùng Static Generation + revalidateTag.
+Dữ liệu thay đổi liên tục (Giá vàng, Chứng khoán): Dùng ISR với revalidate: 10 (10 giây).
+Dữ liệu cá nhân (Profile, Giỏ hàng): Dùng Dynamic Rendering (No-store) kết hợp với Client Cache (React Query/SWR).
+Dữ liệu cực lớn: Kết hợp thêm Redis ở phía Backend để giảm tải cho Database.
+
+1. Các Chiến Lược Rendering
+Static Site Generation - SSG
+(SSG)	Static Site Generation	Nấu sẵn: Tạo HTML từ lúc Build. Nhanh nhất, tốt cho SEO.
+(SSR)	Server-Side Rendering	Nấu ngay: Tạo HTML mỗi khi có khách truy cập. Dữ liệu luôn mới.
+(ISR)	Incremental Static Regeneration	Nấu lại: Bản nâng cấp của SSG, tự cập nhật HTML sau một khoảng thời gian.
+(CSR)	Client-Side Rendering	Tự nấu: Trình duyệt tự tải JS về rồi mới vẽ ra giao diện.
+(PPR)	Partial Prerendering: Trộn lẫn: Một trang có cả phần Tĩnh (SSG) và phần Động (SSR).
+
+2. Các Thành Phần & Cơ Chế (Cấu trúc)
+(RSC)	React Server Components	Các Component: chạy hoàn toàn trên Server (mặc định trong App Router).
+(RCC)	React Client Components	Các Component: có 'use client', chạy được ở trình duyệt (onClick, useState).
+(SEO)	Search Engine Optimization: Tối ưu hóa để Google dễ dàng tìm thấy và xếp hạng trang web của bạn.
+(FCP)	First Contentful Paint:	Thời gian từ lúc bấm vào link đến lúc nội dung đầu tiên hiện ra (Càng nhanh càng tốt).
+(TTF)B	Time to First Byte:	Thời gian chờ server phản hồi byte dữ liệu đầu tiên.
+
+3. Caching & Data (Lưu trữ)
+(SWR)	Stale-While-Revalidate	Chiến lược: Dùng đồ cũ (Stale) trước, âm thầm nấu đồ mới (Revalidate) sau.
+(TTL)	Time To Live	Thời gian sống của một bản cache trước khi bị coi là hết hạn.
+(CDN)	Content Delivery Network	Hệ thống máy chủ khắp thế giới để gửi file ảnh/HTML cho khách nhanh nhất.
+(SSRF)	Server-Side Request Forgery	Một loại lỗ hổng bảo mật (mà lỗi Private IP bạn gặp chính là để chặn cái này).
+
+4. Công cụ & Trạng thái
+DOM	Document Object Model	Cấu trúc cây của trang web mà trình duyệt hiểu.
+URL	Uniform Resource Locator	Địa chỉ web (ví dụ: http://localhost:3000).
+API	Application Programming Interface	Cổng giao tiếp để Next.js lấy dữ liệu từ Backend của bạn.
+HTTP	HyperText Transfer Protocol	Giao thức truyền tải dữ liệu giữa trình duyệt và server.
+
+5. Hydration -> Quá trình "hồi sinh" (nhập hồn vào xác).
+
+================
+1.
+Static Rendering (SSG): Server lấy data $\rightarrow$ Đóng gói HTML $\rightarrow$ Gửi đi.
+Dynamic Rendering (SSR): Khách vào $\rightarrow$ Server lấy data $\rightarrow$ Đóng gói HTML $\rightarrow$ Gửi đi.
+Client-side Fetching: Server gửi HTML trống $\rightarrow$ Trình duyệt lấy data $\rightarrow$ Tự vẽ. (Đây là trường hợp của bạn).
+
+2. Tại sao code của Sơn không dùng cái này?
+Trong file Home bạn vừa gửi, bạn không dùng { cache: 'force-cache' } vì:
+Bạn đang dùng React Query (useGetDishListQuery) ở phía Client.
+React Query có cơ chế cache riêng của nó ở trình duyệt (In-memory cache), không liên quan đến cơ chế fetch cache này của Next.js Server.
+
+=====================
+
+1. Bản chất của 'use client'
+  +, Khi bạn thêm 'use client', Next.js vẫn thực hiện việc Render lần đầu (Prerender) trên Server để tạo ra một bản HTML tĩnh.
+  +, Mục đích: Để khi khách hàng vừa truy cập vào link, họ thấy ngay giao diện (nút bấm, form, layout) mà không phải chờ trình duyệt tải xong đống JavaScript nặng nề.
+  +, Sau khi HTML đó xuống tới trình duyệt, JavaScript mới nhảy vào "kích hoạt" (Hydration) các sự kiện như onClick, useState.
+2. Tại sao nó vẫn là Static (○)?
+  +, Next.js đánh dấu một trang là Static nếu nó có thể được "nấu chín" hoàn toàn ngay tại thời điểm bạn gõ lệnh npm run build.
+  +, Trang 'use client' của bạn (ví dụ trang Admin) vẫn là Static vì:
+  +, Nó không sử dụng các hàm Dynamic (như cookies(), headers(), hoặc searchParams).
+  +, Nó không gọi API Server với cache: 'no-store'.
+  +, Nó chỉ chứa "vỏ" UI. Còn dữ liệu thật (từ React Query) thì lúc Build nó chưa thèm lấy, nó đợi ra trình duyệt mới lấy.
