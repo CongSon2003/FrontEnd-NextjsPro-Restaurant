@@ -6,9 +6,10 @@ import { toast } from 'react-toastify'
 import { twMerge } from 'tailwind-merge'
 import { EntityError } from './http'
 import { authApiRequest } from '@/apiRequests/auth'
-import { DishStatus } from '@/constants/types'
+import { DishStatus, Role, RoleType } from '@/constants/types'
 import { TableStatus } from '@/validationsSchema/table.shema'
 import envConfig from '@/config'
+import guestApiRequest from '@/apiRequests/guest'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -56,8 +57,8 @@ export const checkAndRefreshToken = async (params?: { onError: () => void; onSuc
     return
   }
 
-  const decodedAccessToken = jwt.decode(accessToken) as { exp: number; iat: number } | null
-  const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number; iat: number } | null
+  const decodedAccessToken = jwt.decode(accessToken) as { exp: number; iat: number; role: RoleType } | null
+  const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number; iat: number; role: RoleType } | null
 
   // if (!decodedAccessToken || !decodedRefreshToken) {
   //   return params?.onError?.()
@@ -82,7 +83,10 @@ export const checkAndRefreshToken = async (params?: { onError: () => void; onSuc
 
   // 4. Nếu sắp hết hạn (< 1/3) -> Tiến hành gọi API
   try {
-    const res = await authApiRequest.RefreshToken()
+    //
+    const role = decodedRefreshToken.role
+    console.log('role:', role)
+    const res = role === Role.Guest ? await guestApiRequest.RefreshToken() : await authApiRequest.RefreshToken()
 
     if (res.status === 401 || res.status === 404) {
       removeTokensFromLocalStorage()
@@ -95,7 +99,7 @@ export const checkAndRefreshToken = async (params?: { onError: () => void; onSuc
 
     // BẮT BUỘC: Gọi onSuccess sau khi đã lưu xong
     console.log('Refresh-token Success!')
-    return params?.onSuccess?.()
+    return params?.onSuccess && params.onSuccess()
   } catch (error) {
     console.error('Refresh Token Error:', error)
     return params?.onError?.()

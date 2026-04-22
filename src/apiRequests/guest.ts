@@ -40,7 +40,7 @@ const guestApiRequest = {
 
   // Từ route handle gọi đến backend
   sRefreshToken: (body: RefreshTokenBodyType) => {
-    return http.post<RefreshTokenResType>('auth/refresh-token', body)
+    return http.post<RefreshTokenResType>('/guest/auth/refresh-token', body)
   },
 
   // Từ client gọi đến route handler
@@ -56,7 +56,7 @@ const guestApiRequest = {
   async RefreshToken() {
     if (this.refreshTokenRequest) return this.refreshTokenRequest
 
-    this.refreshTokenRequest = http.post<RefreshTokenResType>('api/auth/refresh-token', null, {
+    this.refreshTokenRequest = http.post<RefreshTokenResType>('api/guest/auth/refresh-token', null, {
       baseUrl: ''
     })
 
